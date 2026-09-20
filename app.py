@@ -62,7 +62,7 @@ col_logo, col_titolo, col_bot = st.columns([0.2, 0.6, 0.2])
 with col_logo:
     # Aggiriamo Streamlit forzando il browser a caricare l'immagine nativamente
     st.markdown(
-        '<img src="https://raw.githubusercontent.com/postaajb/finapp/main/logo.png" style="width:100%; border-radius:15px;">', 
+        '<img src="https://raw.githubusercontent.com/postaajb/finapp/main/IMG_8037.png" style="width:100%; border-radius:15px;">', 
         unsafe_allow_html=True
     )
     
