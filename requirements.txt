@@ -1,2 +1,4 @@
 streamlit
+pandas
+altair
 google-cloud-firestore
