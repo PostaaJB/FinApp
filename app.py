@@ -11,13 +11,17 @@ def get_db():
         from google.oauth2 import service_account
         from google.cloud import firestore
         
-        if "firebase_key" in st.secrets:
-            key_dict = json.loads(st.secrets["firebase_key"])
-            creds = service_account.Credentials.from_service_account_info(key_dict)
-            db = firestore.Client(credentials=creds, project="finapp-ea8fa")
-            return db
-        return None
+        if "firebase_key" not in st.secrets:
+            st.error("ERRORE: Non trovo la parola 'firebase_key' nei Secret.")
+            return None
+            
+        key_dict = json.loads(st.secrets["firebase_key"])
+        creds = service_account.Credentials.from_service_account_info(key_dict)
+        db = firestore.Client(credentials=creds, project="finapp-ea8fa")
+        return db
     except Exception as e:
+        # Questo stamperà a schermo il VERO problema
+        st.error(f"ERRORE DI CONNESSIONE: {e}")
         return None
 
 db = get_db()
