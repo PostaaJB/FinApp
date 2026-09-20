@@ -60,8 +60,11 @@ def pac_modal():
 col_logo, col_titolo, col_bot = st.columns([0.2, 0.6, 0.2])
 
 with col_logo:
-    # Usiamo il link "Raw" (diretto) di GitHub bypassando il caricamento locale
-    st.image("https://raw.githubusercontent.com/postaajb/finapp/main/logo.png", use_container_width=True)
+    # Aggiriamo Streamlit forzando il browser a caricare l'immagine nativamente
+    st.markdown(
+        '<img src="https://raw.githubusercontent.com/postaajb/finapp/main/logo.png" style="width:100%; border-radius:15px;">', 
+        unsafe_allow_html=True
+    )
     
 with col_titolo:
     st.title("FinApp")
