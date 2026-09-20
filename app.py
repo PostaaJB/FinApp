@@ -12,15 +12,18 @@ def get_db():
         from google.cloud import firestore
         
         if "firebase_key" not in st.secrets:
-            st.error("ERRORE: Non trovo la parola 'firebase_key' nei Secret.")
+            st.error("⚠️ In attesa della Chiave Segreta Firebase nei Secret.")
             return None
             
-        key_dict = json.loads(st.secrets["firebase_key"])
+        # IL TRUCCO È QUI: strict=False forza Python a ignorare gli a capo fisici non previsti
+        key_dict = json.loads(st.secrets["firebase_key"], strict=False)
+        
         creds = service_account.Credentials.from_service_account_info(key_dict)
         db = firestore.Client(credentials=creds, project="finapp-ea8fa")
         return db
+        
     except Exception as e:
-        # Questo stamperà a schermo il VERO problema
+        # Mostra l'errore se fallisce ancora
         st.error(f"ERRORE DI CONNESSIONE: {e}")
         return None
 
