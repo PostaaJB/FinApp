@@ -71,7 +71,7 @@ def chatbot_modal():
                 genai.configure(api_key=st.secrets["gemini_key"])
                 
                 # Usiamo direttamente l'identificativo standard aggiornato (senza auto-rilevamento)
-                model = genai.GenerativeModel("gemini-2.5-flash")
+                model = genai.GenerativeModel("gemini-3.6-flash")
                 
                 # Creiamo il "Contesto" per l'IA
                 dati_transazioni = df_t.to_dict('records') if not df_t.empty else 'Nessuna transazione registrata.'
