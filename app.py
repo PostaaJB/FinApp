@@ -53,40 +53,48 @@ st.set_page_config(
 # ==========================================
 @st.dialog("Assistente Bot 🤖")
 def chatbot_modal():
-    st.markdown("Sono il tuo Bot statistico. Chiedimi un riassunto scrivendo **spese**, **entrate**, o **portafoglio**.")
+    st.markdown("Sono la tua **IA Finanziaria basata su Google Gemini**. Conosco il tuo database, chiedimi analisi avanzate, consigli o riassunti!")
     
-    # Lettura dati per il bot
     df_t = get_transazioni()
     df_tit = get_titoli()
     
-    msg = st.chat_input("Es. 'Quanto ho speso finora?'")
+    msg = st.chat_input("Es. 'In quale categoria ho speso di più?' o 'Riassumi il mio portafoglio'")
     if msg:
-        msg_lower = msg.lower()
         st.chat_message("user").write(msg)
         
-        # Logica del Bot Base (Opzione 1)
-        if "spes" in msg_lower or "uscit" in msg_lower:
-            if not df_t.empty and 'Uscita' in df_t['tipo'].values:
-                tot_uscite = df_t[df_t['tipo'] == 'Uscita']['importo'].sum()
-                st.chat_message("assistant").write(f"📊 Fino ad oggi hai registrato uscite per un totale di **{tot_uscite:,.2f} €**.")
+        try:
+            import google.generativeai as genai
+            
+            if "gemini_key" not in st.secrets:
+                st.chat_message("assistant").error("⚠️ Manca la chiave API di Gemini nei Secret.")
             else:
-                st.chat_message("assistant").write("Non hai ancora registrato nessuna uscita nel database.")
+                # 1. Configurazione di Gemini
+                genai.configure(api_key=st.secrets["gemini_key"])
+                # Usiamo il modello Flash: velocissimo e gratuito
+                model = genai.GenerativeModel('gemini-1.5-flash')
                 
-        elif "entrat" in msg_lower or "guadagn" in msg_lower or "stipendi" in msg_lower:
-            if not df_t.empty and 'Entrata' in df_t['tipo'].values:
-                tot_entrate = df_t[df_t['tipo'] == 'Entrata']['importo'].sum()
-                st.chat_message("assistant").write(f"📈 Le tue entrate totali ammontano a **{tot_entrate:,.2f} €**.")
-            else:
-                st.chat_message("assistant").write("Non hai ancora registrato nessuna entrata.")
+                # 2. Creiamo il "Contesto" per l'IA (le passiamo i tuoi veri dati!)
+                dati_transazioni = df_t.to_dict('records') if not df_t.empty else 'Nessuna transazione registrata.'
+                dati_titoli = df_tit.to_dict('records') if not df_tit.empty else 'Nessun titolo in portafoglio.'
                 
-        elif "portafoglio" in msg_lower or "titol" in msg_lower or "investiment" in msg_lower:
-            if not df_tit.empty:
-                tot_ptf = (df_tit['quantita'] * df_tit['prezzo']).sum()
-                st.chat_message("assistant").write(f"💼 Il controvalore totale del tuo portafoglio inserito è **{tot_ptf:,.2f} €**.")
-            else:
-                st.chat_message("assistant").write("Il tuo portafoglio è ancora vuoto.")
-        else:
-            st.chat_message("assistant").write("Posso analizzare per te spese, entrate e portafoglio. Prova a scrivermi una di queste parole chiave!")
+                prompt_di_sistema = f"""
+                Sei un assistente finanziario personale empatico, professionale e molto conciso. 
+                Rispondi SEMPRE in italiano e in modo formattato (usa grassetti e punti elenco se serve).
+                Usa QUESTI DATI che rappresentano il database attuale dell'utente per rispondere in modo preciso:
+                
+                TRANSAZIONI DELL'UTENTE: {dati_transazioni}
+                PORTAFOGLIO TITOLI DELL'UTENTE: {dati_titoli}
+                
+                Domanda dell'utente a cui rispondere: "{msg}"
+                """
+                
+                # 3. Chiamata all'Intelligenza Artificiale
+                with st.spinner("Gemini sta analizzando i tuoi dati..."):
+                    response = model.generate_content(prompt_di_sistema)
+                    st.chat_message("assistant").write(response.text)
+                    
+        except Exception as e:
+            st.chat_message("assistant").error(f"Errore di connessione a Gemini: {e}")
 
 @st.dialog("➕ Nuova Transazione")
 def transazione_modal():
