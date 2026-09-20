@@ -11,7 +11,6 @@ def get_db():
         from google.oauth2 import service_account
         from google.cloud import firestore
         
-        # L'app si connette in automatico non appena inseriremo la chiave nel Secret
         if "firebase_key" in st.secrets:
             key_dict = json.loads(st.secrets["firebase_key"])
             creds = service_account.Credentials.from_service_account_info(key_dict)
@@ -23,7 +22,7 @@ def get_db():
 
 db = get_db()
 
-# --- CONFIGURAZIONE PAGINA (ICON CUSTOM) ---
+# --- CONFIGURAZIONE PAGINA ---
 st.set_page_config(
     page_title="FinApp 2.0", 
     page_icon="https://raw.githubusercontent.com/postaajb/finapp/main/IMG_8037.png", 
@@ -57,7 +56,7 @@ def transazione_modal():
                 })
                 st.success("✅ Transazione salvata in Cloud!")
             else:
-                st.warning("⚠️ Database non ancora collegato (Inserisci la chiave in Streamlit).")
+                st.warning("⚠️ Database non ancora collegato.")
 
 @st.dialog("➕ Inserisci Titolo")
 def titolo_modal():
@@ -104,7 +103,6 @@ def dettaglio_portafoglio_modal():
 col_logo, col_titolo, col_bot = st.columns([0.15, 0.65, 0.2])
 
 with col_logo:
-    # Immagine con nome file aggiornato
     st.markdown(
         '<img src="https://raw.githubusercontent.com/postaajb/finapp/main/IMG_8037.png" style="max-width: 55px; width:100%; border-radius:12px; margin-top:5px;">', 
         unsafe_allow_html=True
@@ -115,11 +113,11 @@ with col_titolo:
     
 with col_bot:
     st.write("") 
-    if st.button("🤖", help="Apri l'assistente IA", use_container_width=True):
+    if st.button("💬 Bot", help="Apri l'assistente IA", use_container_width=True):
         chatbot_modal()
 
 if not db:
-    st.error("⚠️ In attesa della Chiave Segreta Firebase per attivare i salvataggi.")
+    st.error("⚠️ In attesa della Chiave Segreta Firebase nei Secret per attivare i salvataggi reali.")
 
 # ==========================================
 # TABELLONI E GRAFICI
@@ -135,8 +133,18 @@ with tab1:
         "Entrate": [2500, 2600, 2500, 2800, 2500],
         "Uscite": [1800, 1500, 2100, 1600, 1900]
     }).set_index("Mese")
+    
     st.subheader("Andamento Mese per Mese")
     st.bar_chart(df_mesi)
+
+    # I GRAFICI SINGOLI RIPRISTINATI
+    col_e, col_u = st.columns(2)
+    with col_e:
+        st.markdown("**Solo Entrate**")
+        st.line_chart(df_mesi[["Entrate"]], color="#2ECC71")
+    with col_u:
+        st.markdown("**Solo Uscite**")
+        st.line_chart(df_mesi[["Uscite"]], color="#E74C3C")
 
 with tab2:
     col_t1, col_t2 = st.columns(2)
@@ -156,12 +164,24 @@ with tab2:
     st.line_chart(df_portafoglio)
 
     st.divider()
-    st.markdown("**Composizione Portafoglio**")
-    df_pie_port = pd.DataFrame({"Asset": ["Azioni", "Obbligazioni", "Liquidità"], "Valore": [60, 30, 10]})
-    pie_chart1 = alt.Chart(df_pie_port).mark_arc(innerRadius=40).encode(
-        theta="Valore", color="Asset", tooltip=["Asset", "Valore"]
-    ).properties(height=250)
-    st.altair_chart(pie_chart1, use_container_width=True)
+    
+    # LE DUE TORTE RIPRISTINATE E AFFIANCATE
+    col_pie1, col_pie2 = st.columns(2)
+    with col_pie1:
+        st.markdown("**Composizione Portafoglio**")
+        df_pie_port = pd.DataFrame({"Asset": ["Azioni", "Obbligazioni", "Liquidità"], "Valore": [60, 30, 10]})
+        pie_chart1 = alt.Chart(df_pie_port).mark_arc(innerRadius=40).encode(
+            theta="Valore", color="Asset", tooltip=["Asset", "Valore"]
+        ).properties(height=250)
+        st.altair_chart(pie_chart1, use_container_width=True)
+        
+    with col_pie2:
+        st.markdown("**Composizione PAC**")
+        df_pie_pac = pd.DataFrame({"Asset": ["S&P 500", "Emergenti", "Europa"], "Valore": [70, 15, 15]})
+        pie_chart2 = alt.Chart(df_pie_pac).mark_arc(innerRadius=40).encode(
+            theta="Valore", color="Asset", tooltip=["Asset", "Valore"]
+        ).properties(height=250)
+        st.altair_chart(pie_chart2, use_container_width=True)
     
     if st.button("🔍 Apri Dettaglio Titoli", use_container_width=True):
         dettaglio_portafoglio_modal()
