@@ -4,13 +4,13 @@ import datetime
 import altair as alt
 
 # --- CONFIGURAZIONE PAGINA ---
-st.set_page_config(page_title="FinApp 2.0", page_icon="🧮", layout="centered")
+# Il tuo logo apparirà direttamente nella linguetta di Safari/Chrome
+st.set_page_config(page_title="FinApp 2.0", page_icon="logo.png", layout="centered")
 
 # ==========================================
-# POP-UP (MODALS) - Definiti prima dell'interfaccia
+# POP-UP (MODALS)
 # ==========================================
-
-@st.dialog("Assistente Bot 🧮")
+@st.dialog("Assistente Bot 🤖")
 def chatbot_modal():
     st.markdown("Chiedimi un'analisi delle tue spese o consigli sul portafoglio.")
     st.chat_message("assistant").write("Ciao! Come posso aiutarti con le tue finanze oggi?")
@@ -54,17 +54,21 @@ def pac_modal():
         if st.form_submit_button("Attiva PAC"):
             st.success("PAC configurato con successo! (Simulazione)")
 
+# ==========================================
+# INTESTAZIONE PRINCIPALE CON LOGO CUSTOM
+# ==========================================
+col_logo, col_titolo, col_bot = st.columns([0.2, 0.6, 0.2])
 
-# ==========================================
-# INTESTAZIONE PRINCIPALE
-# ==========================================
-col1, col2 = st.columns([0.85, 0.15])
-with col1:
-    st.title("📊 La mia FinApp")
-with col2:
-    st.write("") # Spaziatura
-    # Il bottone Calcolatrice apre il pop-up del Bot
-    if st.button("🧮", help="Apri l'assistente IA"):
+with col_logo:
+    # Mostra la tua immagine calcolatrice caricata su GitHub
+    st.image("logo.png", use_column_width=True)
+    
+with col_titolo:
+    st.title("FinApp")
+    
+with col_bot:
+    st.write("") # Spaziatura per allineare il bottone verticalmente
+    if st.button("🤖 Chat", help="Apri l'assistente IA", use_container_width=True):
         chatbot_modal()
 
 # ==========================================
