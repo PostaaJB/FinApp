@@ -61,7 +61,7 @@ col_logo, col_titolo, col_bot = st.columns([0.2, 0.6, 0.2])
 
 with col_logo:
     # Mostra la tua immagine calcolatrice caricata su GitHub
-    st.image("logo.png", use_container_width=True))
+    st.image("logo.png", use_container_width=True)
     
 with col_titolo:
     st.title("FinApp")
