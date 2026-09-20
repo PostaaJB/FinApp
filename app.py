@@ -70,19 +70,10 @@ def chatbot_modal():
             else:
                 genai.configure(api_key=st.secrets["gemini_key"])
                 
-                # 1. AUTO-RILEVAMENTO MODELLO (Elimina per sempre l'errore 404)
-                modelli_attivi = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+                # Usiamo direttamente l'identificativo standard aggiornato (senza auto-rilevamento)
+                model = genai.GenerativeModel("gemini-1.5-flash")
                 
-                # Cerca la versione Flash, se non c'è ripiega sul classico "gemini-pro" infallibile
-                modello_scelto = 'models/gemini-pro'
-                for m in modelli_attivi:
-                    if '1.5-flash' in m:
-                        modello_scelto = m
-                        break
-                
-                model = genai.GenerativeModel(modello_scelto)
-                
-                # 2. Creiamo il "Contesto" per l'IA
+                # Creiamo il "Contesto" per l'IA
                 dati_transazioni = df_t.to_dict('records') if not df_t.empty else 'Nessuna transazione registrata.'
                 dati_titoli = df_tit.to_dict('records') if not df_tit.empty else 'Nessun titolo in portafoglio.'
                 
@@ -97,9 +88,8 @@ def chatbot_modal():
                 Domanda dell'utente a cui rispondere: "{msg}"
                 """
                 
-                # 3. Chiamata all'Intelligenza Artificiale
-                nome_visivo = modello_scelto.replace("models/", "")
-                with st.spinner(f"Gemini ({nome_visivo}) sta analizzando i tuoi dati..."):
+                # Chiamata all'Intelligenza Artificiale
+                with st.spinner("Gemini sta analizzando i tuoi dati..."):
                     response = model.generate_content(prompt_di_sistema)
                     st.chat_message("assistant").write(response.text)
                     
