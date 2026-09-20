@@ -68,18 +68,27 @@ def chatbot_modal():
             if "gemini_key" not in st.secrets:
                 st.chat_message("assistant").error("⚠️ Manca la chiave API di Gemini nei Secret.")
             else:
-                # 1. Configurazione di Gemini
                 genai.configure(api_key=st.secrets["gemini_key"])
-                # Usiamo il modello Flash: velocissimo e gratuito
-                model = genai.GenerativeModel('gemini-1.5-flash')
                 
-                # 2. Creiamo il "Contesto" per l'IA (le passiamo i tuoi veri dati!)
+                # 1. AUTO-RILEVAMENTO MODELLO (Elimina per sempre l'errore 404)
+                modelli_attivi = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+                
+                # Cerca la versione Flash, se non c'è ripiega sul classico "gemini-pro" infallibile
+                modello_scelto = 'models/gemini-pro'
+                for m in modelli_attivi:
+                    if '1.5-flash' in m:
+                        modello_scelto = m
+                        break
+                
+                model = genai.GenerativeModel(modello_scelto)
+                
+                # 2. Creiamo il "Contesto" per l'IA
                 dati_transazioni = df_t.to_dict('records') if not df_t.empty else 'Nessuna transazione registrata.'
                 dati_titoli = df_tit.to_dict('records') if not df_tit.empty else 'Nessun titolo in portafoglio.'
                 
                 prompt_di_sistema = f"""
-                Sei un assistente finanziario personale empatico, professionale e molto conciso. 
-                Rispondi SEMPRE in italiano e in modo formattato (usa grassetti e punti elenco se serve).
+                Sei un assistente finanziario personale empatico, professionale e conciso. 
+                Rispondi SEMPRE in italiano, usando grassetti ed elenchi puntati per facilitare la lettura.
                 Usa QUESTI DATI che rappresentano il database attuale dell'utente per rispondere in modo preciso:
                 
                 TRANSAZIONI DELL'UTENTE: {dati_transazioni}
@@ -89,12 +98,13 @@ def chatbot_modal():
                 """
                 
                 # 3. Chiamata all'Intelligenza Artificiale
-                with st.spinner("Gemini sta analizzando i tuoi dati..."):
+                nome_visivo = modello_scelto.replace("models/", "")
+                with st.spinner(f"Gemini ({nome_visivo}) sta analizzando i tuoi dati..."):
                     response = model.generate_content(prompt_di_sistema)
                     st.chat_message("assistant").write(response.text)
                     
         except Exception as e:
-            st.chat_message("assistant").error(f"Errore di connessione a Gemini: {e}")
+            st.chat_message("assistant").error(f"Errore tecnico Gemini: {e}")
 
 @st.dialog("➕ Nuova Transazione")
 def transazione_modal():
